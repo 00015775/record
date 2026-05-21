@@ -38,3 +38,25 @@ TOPICS: list[str] = [
     "Tartib sonlar",
     "Hujjatlar mavzusi",
 ]
+
+
+# 3. POSE LANDMARK FILTERING
+# Keep only upper-body arm landmarks (shoulders, elbows, wrists).
+# MediaPipe predicts face and leg landmarks even when they are off-frame,
+# producing extrapolated out-of-range values. These indices are zeroed out
+# when saving keypoints so downstream code only sees meaningful data.
+POSE_REMOVE_IDX: list[int] = [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,        # face landmarks
+    17, 18, 19, 20, 21, 22,                    # torso / hip extras
+    23, 24, 25, 26, 27, 28, 29, 30, 31, 32,   # hips, legs, feet
+]
+
+# Kept indices: 11 (L shoulder), 12 (R shoulder), 13 (L elbow),
+#               14 (R elbow), 15 (L wrist), 16 (R wrist)
+POSE_KEEP_CONNECTIONS: frozenset = frozenset([
+    (11, 12),  # left shoulder — right shoulder
+    (11, 13),  # left shoulder — left elbow
+    (12, 14),  # right shoulder — right elbow
+    (13, 15),  # left elbow — left wrist
+    (14, 16),  # right elbow — right wrist
+])
