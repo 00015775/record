@@ -1,11 +1,17 @@
-"""One-off script: read the words CSV and write signs.json for every topic."""
+"""One-off script: read the words CSV and write signs.json for every topic.
+
+Run:    python scripts/_seed_signs.py
+"""
 import csv
 import json
 from collections import defaultdict
 from pathlib import Path
 
-DATA_ROOT = Path("./Data_Numpy_Arrays_RSL_UzSL")
-CSV_PATH  = Path("imo-ishora-so'zlar - so'zlar.csv")
+_SCRIPTS_DIR  = Path(__file__).resolve().parent
+_PROJECT_ROOT = _SCRIPTS_DIR.parent
+
+DATA_ROOT = _PROJECT_ROOT / "Data_Numpy_Arrays_RSL_UzSL"
+CSV_PATH  = _PROJECT_ROOT / "imo-ishora-so'zlar - so'zlar.csv"
 
 words_by_topic: dict[str, list[str]] = defaultdict(list)
 

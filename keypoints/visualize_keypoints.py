@@ -9,14 +9,15 @@ Output filename pattern:
     debug/{topic}__{signer}__{sign}__{rep}__{mode}.mp4
 
 Modes:
-  skeleton    — 1280×720 black canvas; pose (blue), LH (green), RH (red),
-                face NMM (cyan dots, no connections).
+  skeleton    — 1280×720 black canvas; pose (white lines / gray dots),
+                LH (blue), RH (green), face (cyan — 478-pt mesh when available,
+                74-pt NMM fallback otherwise).
   sidebyside  — original video (left) + skeleton canvas (right) concatenated.
 
 Usage:
-    python visualize_keypoints.py --rep .../Alifbo/signer01/A/videos/rep-0
-    python visualize_keypoints.py --rep ... --mode sidebyside
-    python visualize_keypoints.py --rep ... --mode skeleton --fps 30
+    python keypoints/visualize_keypoints.py --rep .../Alifbo/signer01/A/videos/rep-0
+    python keypoints/visualize_keypoints.py --rep ... --mode sidebyside
+    python keypoints/visualize_keypoints.py --rep ... --mode skeleton --fps 30
 """
 
 from __future__ import annotations
@@ -28,15 +29,17 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-_ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(_ROOT))
+_ROOT    = Path(__file__).resolve().parent   # keypoints/
+_PROJECT = _ROOT.parent                      # project root
+sys.path.insert(0, str(_ROOT))               # keypoint_extraction.py
+sys.path.insert(0, str(_PROJECT / "app"))    # mod01_config.py
 
 from keypoint_extraction import NMM_INDICES  # noqa: E402
 from mod01_config import DATA_ROOT as _DATA_ROOT_STR, POSE_KEEP_CONNECTIONS  # noqa: E402
 import mediapipe as mp  # noqa: E402
 
-_DEFAULT_ROOT = (_ROOT / _DATA_ROOT_STR).resolve()
-_DEBUG_DIR = _ROOT / "debug"
+_DEFAULT_ROOT = (_PROJECT / _DATA_ROOT_STR).resolve()
+_DEBUG_DIR    = _PROJECT / "debug"
 
 # ── Skeleton colours (BGR) — matches reference machine ───────────────────────
 COL_POSE_LINE = (255, 255, 255)   # white  — lines
@@ -301,7 +304,7 @@ def main() -> int:
 
     if not kp_path.exists():
         print(f"ERROR: keypoints.npz not found: {kp_path}", file=sys.stderr)
-        print("  Run extract_keypoints.py first.", file=sys.stderr)
+        print("  Run keypoints/extract_keypoints.py first.", file=sys.stderr)
         return 1
 
     if args.mode == "sidebyside" and not vid_path.exists():

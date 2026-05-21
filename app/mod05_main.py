@@ -1,3 +1,8 @@
+"""
+Terminal-based UzSL recording application (OpenCV window).
+
+Run:    python app/mod05_main.py
+"""
 import cv2
 from mod01_config import VIDEO_DEVICE, FRAME_WIDTH, FRAME_HEIGHT, FPS
 from mod04_ui import select_signer, select_topic, select_sign, after_recording_menu
@@ -12,7 +17,7 @@ def main():
     cap.set(cv2.CAP_PROP_FPS, FPS)
 
     if not cap.isOpened():
-        print("Cannot open camera. Check VIDEO_DEVICE in mod01_config.py")
+        print("Cannot open camera. Check VIDEO_DEVICE in app/mod01_config.py")
         return
 
     signer_id = select_signer()

@@ -1,3 +1,10 @@
+"""
+Standalone camera recorder — press R to start/stop, Q to quit.
+
+Recordings are saved to data/ at the project root.
+
+Run:    python scripts/recorder.py
+"""
 import cv2
 import datetime
 import os
@@ -23,7 +30,7 @@ print(f"Detected FPS: {fps:.1f}  |  Resolution: {width}x{height}")
 writer = None
 recording = False
 
-data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 os.makedirs(data_dir, exist_ok=True)
 
 print("Press R to start/stop recording. Press Q to quit.")

@@ -6,9 +6,9 @@ checks all array shapes and value ranges, writes keypoints.npz, reloads it,
 and verifies the reloaded arrays match.
 
 Usage:
-    python smoke_test_keypoints.py
-    python smoke_test_keypoints.py --data-root /path/to/data
-    python smoke_test_keypoints.py --video /explicit/path/video.mp4
+    python keypoints/smoke_test_keypoints.py
+    python keypoints/smoke_test_keypoints.py --data-root /path/to/data
+    python keypoints/smoke_test_keypoints.py --video /explicit/path/video.mp4
 
 Exit code: 0 if all checks pass, 1 if any fail.
 """
@@ -22,15 +22,17 @@ from pathlib import Path
 
 import numpy as np
 
-_ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(_ROOT))
+_ROOT    = Path(__file__).resolve().parent   # keypoints/
+_PROJECT = _ROOT.parent                      # project root
+sys.path.insert(0, str(_ROOT))               # keypoint_extraction.py
+sys.path.insert(0, str(_PROJECT / "app"))    # mod01_config.py
 
 from keypoint_extraction import extract_from_video, N_POSE, N_HAND, N_FACE_NMM  # noqa: E402
 from mod01_config import DATA_ROOT as _DATA_ROOT_STR, POSE_REMOVE_IDX           # noqa: E402
 
 _POSE_KEEP_IDX = [i for i in range(N_POSE) if i not in set(POSE_REMOVE_IDX)]
 
-_DEFAULT_ROOT = (_ROOT / _DATA_ROOT_STR).resolve()
+_DEFAULT_ROOT = (_PROJECT / _DATA_ROOT_STR).resolve()
 
 # ── Colours ──────────────────────────────────────────────────────────────────
 GREEN = "\033[32m"
@@ -47,7 +49,7 @@ def _fail(msg: str) -> None:
     print(f"  {RED}FAIL{RESET}  {msg}")
 
 
-# ── Path helpers (mirrors extract_keypoints.py) ───────────────────────────────
+# ── Path helpers (mirrors keypoints/extract_keypoints.py) ────────────────────
 
 def default_kp_args() -> argparse.Namespace:
     return argparse.Namespace(

@@ -12,10 +12,10 @@ Output path mirrors the videos/ directory structure:
 Reps whose keypoints.npz already exist are skipped unless --force is given.
 
 Usage:
-    python extract_keypoints.py
-    python extract_keypoints.py --signer signer01 --topic Alifbo
-    python extract_keypoints.py --force
-    python extract_keypoints.py --model-complexity 2
+    python keypoints/extract_keypoints.py
+    python keypoints/extract_keypoints.py --signer signer01 --topic Alifbo
+    python keypoints/extract_keypoints.py --force
+    python keypoints/extract_keypoints.py --model-complexity 2
 """
 
 from __future__ import annotations
@@ -29,13 +29,15 @@ import numpy as np
 # ---------------------------------------------------------------------------
 # Locate project root so imports work regardless of CWD
 # ---------------------------------------------------------------------------
-_ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(_ROOT))
+_ROOT    = Path(__file__).resolve().parent   # keypoints/
+_PROJECT = _ROOT.parent                      # project root
+sys.path.insert(0, str(_ROOT))               # keypoint_extraction.py
+sys.path.insert(0, str(_PROJECT / "app"))    # mod01_config.py
 
 from keypoint_extraction import extract_from_video  # noqa: E402
 from mod01_config import DATA_ROOT as _DATA_ROOT_STR, POSE_REMOVE_IDX  # noqa: E402
 
-_DEFAULT_ROOT = (_ROOT / _DATA_ROOT_STR).resolve()
+_DEFAULT_ROOT = (_PROJECT / _DATA_ROOT_STR).resolve()
 
 
 # ---------------------------------------------------------------------------

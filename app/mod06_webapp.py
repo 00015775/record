@@ -1,7 +1,7 @@
 """
 Web UI for UzSL data collection.
 
-Run:  python mod06_webapp.py
+Run:  python app/mod06_webapp.py
 Browser opens automatically at http://127.0.0.1:5000
 
 The camera feed is streamed as MJPEG directly into the browser — no CV2 window.
@@ -27,7 +27,7 @@ from mod02_storage import (
     list_signers, load_sign_list, load_topic_list, path_videos, recorded_signs,
 )
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates')
 app.secret_key = "uzsl-recorder-lang-key"
 
 
@@ -525,7 +525,7 @@ def main() -> None:
     cap.set(cv2.CAP_PROP_FPS, FPS)
 
     if not cap.isOpened():
-        print("Cannot open camera. Check VIDEO_DEVICE in mod01_config.py")
+        print("Cannot open camera. Check VIDEO_DEVICE in app/mod01_config.py")
         return
 
     cap_holder = [cap]

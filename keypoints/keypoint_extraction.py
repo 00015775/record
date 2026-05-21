@@ -3,7 +3,7 @@
 Input:  a video file, an image, or a directory of either.
 Output: an .npz (and optional .json) file per input containing pose / hands / face
         landmarks plus per-landmark confidence. Schema matches the rest of the
-        UzSL pipeline (see scripts/extract_keypoints.py and src/pretrain/landmarks.py).
+        UzSL pipeline (see keypoints/extract_keypoints.py and src/pretrain/landmarks.py).
 
 Required dependencies (pip):
     mediapipe>=0.10        # Holistic model — pose + hands + face mesh
@@ -18,10 +18,10 @@ Standard library only (no extra installs): argparse, json, sys, dataclasses,
 pathlib, typing.
 
 Usage examples:
-    python keypoint_extraction.py --input path/to/video.mp4
-    python keypoint_extraction.py --input path/to/image.jpg --output out/img.npz
-    python keypoint_extraction.py --input some_dir/ --output-dir out/ --overlay
-    python keypoint_extraction.py --input vid.mp4 --no-face --model-complexity 2
+    python keypoints/keypoint_extraction.py --input path/to/video.mp4
+    python keypoints/keypoint_extraction.py --input path/to/image.jpg --output out/img.npz
+    python keypoints/keypoint_extraction.py --input some_dir/ --output-dir out/ --overlay
+    python keypoints/keypoint_extraction.py --input vid.mp4 --no-face --model-complexity 2
 
 Tune the CONFIG block below or pass CLI flags; everything is intended to be
 hackable.
