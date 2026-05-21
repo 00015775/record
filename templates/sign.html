@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+{% set crumbs = [(signer_id, '/signer'), (tr.topics_crumb, '/topic'), (topic, none)] %}
+
+<div class="card">
+  <div style="font-size:0.78rem; color:#64748b; margin-bottom:0.4rem;">
+    <span style="color:#818cf8;">{{ signer_id }}</span>
+    <span style="margin:0 0.3rem;">›</span>
+    <span style="color:#94a3b8;">{{ topic }}</span>
+  </div>
+  <h2>{{ topic }}</h2>
+  <p style="font-size:0.82rem; color:#64748b; margin-bottom:1.25rem;">
+    {{ sign_data|length }} {{ tr.words_unit }} ·
+    {{ sign_data|selectattr('recorded')|list|length }} {{ tr.recorded_label }}
+  </p>
+
+  <div class="sign-grid">
+    {% for s in sign_data %}
+    <form method="POST" action="/sign/set" style="display:contents;">
+      <input type="hidden" name="sign" value="{{ s.name }}">
+      <button type="submit" class="sign-btn {% if s.recorded %}done{% endif %}">
+        <span>{{ s.name }}</span>
+        {% if s.reps %}<span class="rep-tag">{{ s.reps }}</span>{% endif %}
+      </button>
+    </form>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card" style="max-width:480px;">
+  <h3>{{ tr.add_new_word }}</h3>
+  <form method="POST" action="/sign/add">
+    <div class="add-row">
+      <input type="text" name="new_sign" placeholder="{{ tr.word_placeholder }}" autocomplete="off">
+      <button class="btn btn-ghost" type="submit">{{ tr.add_btn }}</button>
+    </div>
+  </form>
+</div>
+
+<a id="back-btn" href="/topic" class="btn btn-ghost" style="margin-top:0.5rem;">{{ tr.back_to_topics }} <kbd>Esc</kbd></a>
+{% endblock %}

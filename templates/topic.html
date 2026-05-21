@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+{% set crumbs = [(signer_id, '/signer'), (tr.topics_crumb, none)] %}
+
+<div class="card">
+  <div style="font-size:0.78rem; color:#64748b; margin-bottom:0.4rem;">
+    <span style="color:#818cf8;">{{ signer_id }}</span>
+  </div>
+  <h2>{{ tr.topics_heading }}</h2>
+  <div class="topic-grid">
+    {% for tp in topic_data %}
+    <form method="POST" action="/topic/set" style="display:contents;">
+      <input type="hidden" name="topic" value="{{ tp.name }}">
+      <button type="submit" class="topic-btn">
+        <div class="t-name">{{ tp.name }}</div>
+        <div class="t-meta">
+          {% if tp.recorded > 0 %}{{ tp.recorded }}/{% endif %}{{ tp.total }} {{ tr.words_unit }}
+        </div>
+        <div class="t-bar">
+          <div class="t-fill" style="width:{{ ((tp.recorded / tp.total * 100) if tp.total else 0) | int }}%"></div>
+        </div>
+      </button>
+    </form>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card" style="max-width:480px;">
+  <h3>{{ tr.add_new_topic }}</h3>
+  <form method="POST" action="/topic/add">
+    <div class="add-row">
+      <input type="text" name="new_topic" placeholder="{{ tr.topic_placeholder }}" autocomplete="off">
+      <button class="btn btn-ghost" type="submit">{{ tr.add_btn }}</button>
+    </div>
+  </form>
+</div>
+
+<a id="back-btn" href="/signer" class="btn btn-ghost" style="margin-top:0.5rem;">{{ tr.back_to_signer }} <kbd>Esc</kbd></a>
+{% endblock %}

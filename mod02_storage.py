@@ -80,11 +80,26 @@ def count_repetitions(topic: str, signer_id: str, sign: str) -> int:
     vid_dir = path_videos(topic, signer_id, sign)
     if not vid_dir.exists():
         return 0
-    return len([d for d in vid_dir.iterdir() if d.is_dir() and d.name.startswith("rep-")])
+    return sum(1 for d in vid_dir.iterdir() if d.is_dir() and d.name.startswith("rep-"))
+
+def count_all_repetitions(topic: str, signer_id: str) -> dict[str, int]:
+    """Single directory scan → {sign: rep_count} for all signs with recordings."""
+    signer_dir = path_signer(topic, signer_id)
+    if not signer_dir.exists():
+        return {}
+    counts: dict[str, int] = {}
+    for sign_dir in signer_dir.iterdir():
+        if not sign_dir.is_dir() or sign_dir.name.startswith("."):
+            continue
+        vids = sign_dir / "videos"
+        if vids.exists():
+            n = sum(1 for d in vids.iterdir() if d.is_dir() and d.name.startswith("rep-"))
+            if n > 0:
+                counts[sign_dir.name] = n
+    return counts
 
 def recorded_signs(topic: str, signer_id: str) -> set[str]:
-    signs = load_sign_list(topic)
-    return {s for s in signs if count_repetitions(topic, signer_id, s) > 0}
+    return set(count_all_repetitions(topic, signer_id).keys())
 
 
 # ── Signer list ───────────────────────────────────────────────────────────────

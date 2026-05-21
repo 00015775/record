@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="max-width:900px; margin:0 auto;">
+  <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+    <h2 style="margin:0;">{{ tr.camera_test }}</h2>
+    <span id="status-badge"
+          style="padding:0.3rem 0.9rem; border-radius:20px; font-size:0.85rem; font-weight:600;
+                 background:rgba(100,116,139,0.15); border:1px solid #334155; color:#64748b;">
+      …
+    </span>
+    <span style="font-size:0.82rem; color:#475569; margin-left:0.25rem;">{{ cam_name }}</span>
+  </div>
+
+  <div style="border-radius:14px; overflow:hidden; border:1px solid #2d3148; background:#000;">
+    <img id="feed" src="/video_feed" alt="Camera feed"
+         style="width:100%; display:block;"
+         onload="markAlive()" onerror="markDead()">
+  </div>
+
+  <div style="margin-top:1rem;">
+    <a href="javascript:history.back()" class="btn btn-ghost">← Back</a>
+  </div>
+</div>
+
+<script>
+  const LIVE_LABEL     = {{ tr.cam_live     | tojson }};
+  const NO_SIG_LABEL   = {{ tr.cam_no_signal | tojson }};
+
+  const badge = document.getElementById('status-badge');
+
+  function setLive() {
+    badge.textContent = LIVE_LABEL;
+    badge.style.background = 'rgba(34,197,94,0.12)';
+    badge.style.borderColor = 'rgba(34,197,94,0.4)';
+    badge.style.color = '#86efac';
+  }
+
+  function setDead() {
+    badge.textContent = NO_SIG_LABEL;
+    badge.style.background = 'rgba(239,68,68,0.12)';
+    badge.style.borderColor = 'rgba(239,68,68,0.35)';
+    badge.style.color = '#fca5a5';
+  }
+
+  function markAlive() { setLive(); }
+  function markDead()  { setDead(); }
+
+  // Auto-reconnect if stream drops
+  (function () {
+    const img = document.getElementById('feed');
+    let reconnecting = false;
+    function reconnect() {
+      if (reconnecting) return;
+      reconnecting = true;
+      setDead();
+      setTimeout(() => {
+        img.src = '/video_feed?t=' + Date.now();
+        reconnecting = false;
+      }, 900);
+    }
+    img.addEventListener('error', reconnect);
+  })();
+
+  // Poll /camera/ping every second to keep badge accurate
+  setInterval(() => {
+    fetch('/camera/ping')
+      .then(r => r.json())
+      .then(d => d.alive ? setLive() : setDead())
+      .catch(() => setDead());
+  }, 1000);
+</script>
+{% endblock %}

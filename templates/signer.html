@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:480px; margin:3rem auto;">
+  <h2>{{ tr.select_signer }}</h2>
+
+  {% if error %}
+  <div class="alert alert-error">{{ tr[error] }}</div>
+  {% endif %}
+
+  {% if signers %}
+  <h3>{{ tr.existing_signers }}</h3>
+  <div class="signer-chips" id="chips">
+    {% for s in signers %}
+    <span class="chip" onclick="document.getElementById('sid').value='{{ s }}'">{{ s }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="POST" action="/signer/set">
+    <div style="display:flex; gap:0.5rem; align-items:center;">
+      <input type="text" id="sid" name="signer_id" placeholder="{{ tr.signer_placeholder }}" autocomplete="off" autofocus>
+      <button class="btn btn-primary" type="submit">{{ tr.enter_btn }}</button>
+    </div>
+    <p style="font-size:0.78rem; color:#475569; margin-top:0.6rem;">
+      {{ tr.signer_format_hint }}
+    </p>
+  </form>
+</div>
+{% endblock %}

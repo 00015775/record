@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UzSL Recorder</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #1a1d27;
+      border-bottom: 1px solid #2d3148;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .logo { font-size: 1.1rem; font-weight: 700; color: #fff; white-space: nowrap; }
+    .logo span { color: #7c6af7; }
+
+    nav.crumb { display: flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: #64748b; flex-wrap: wrap; flex: 1; }
+    nav.crumb a { color: #818cf8; text-decoration: none; }
+    nav.crumb a:hover { text-decoration: underline; }
+    nav.crumb .sep { color: #334155; }
+
+    /* ── Camera selector ── */
+    .cam-picker {
+      display: flex; align-items: center; gap: 0.5rem;
+      margin-left: auto; flex-shrink: 0;
+    }
+    .cam-picker label { font-size: 0.8rem; color: #64748b; white-space: nowrap; }
+    .cam-select {
+      background: #252836; border: 1px solid #2d3148; color: #e2e8f0;
+      padding: 0.3rem 0.6rem; border-radius: 7px; font-size: 0.8rem;
+      cursor: pointer; outline: none; max-width: 200px;
+    }
+    .cam-select:focus { border-color: #7c6af7; }
+    .cam-refresh {
+      background: none; border: 1px solid #2d3148; color: #64748b;
+      border-radius: 7px; padding: 0.3rem 0.55rem; cursor: pointer;
+      font-size: 0.8rem; transition: all 0.15s;
+    }
+    .cam-refresh:hover { border-color: #7c6af7; color: #c4b5fd; }
+
+    /* ── Layout ── */
+    main { max-width: 1280px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    h2 { font-size: 1.35rem; font-weight: 600; color: #f1f5f9; margin-bottom: 1.25rem; }
+    h3 { font-size: 0.8rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* ── Cards ── */
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2d3148;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 1.1rem; border-radius: 8px; border: none;
+      cursor: pointer; font-size: 0.875rem; font-weight: 500;
+      transition: opacity 0.15s, background 0.15s;
+      text-decoration: none;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary  { background: #7c6af7; color: #fff; }
+    .btn-primary:hover:not(:disabled)  { background: #6d5ce6; }
+    .btn-success  { background: #22c55e; color: #fff; }
+    .btn-success:hover:not(:disabled)  { background: #16a34a; }
+    .btn-danger   { background: #ef4444; color: #fff; }
+    .btn-danger:hover:not(:disabled)   { background: #dc2626; }
+    .btn-ghost    { background: #252836; color: #94a3b8; border: 1px solid #2d3148; }
+    .btn-ghost:hover:not(:disabled)    { background: #2d3148; }
+    .btn-lg { padding: 0.8rem 2rem; font-size: 1rem; }
+
+    /* ── Forms ── */
+    input[type="text"] {
+      background: #252836; border: 1px solid #2d3148; color: #e2e8f0;
+      padding: 0.5rem 0.85rem; border-radius: 8px; font-size: 0.875rem;
+      outline: none; width: 100%;
+    }
+    input[type="text"]:focus { border-color: #7c6af7; box-shadow: 0 0 0 3px rgba(124,106,247,0.15); }
+    input[type="text"]::placeholder { color: #475569; }
+    .add-row { display: flex; gap: 0.5rem; align-items: center; margin-top: 1rem; }
+    .add-row input { max-width: 340px; }
+
+    /* ── Alerts ── */
+    .alert { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.875rem; margin-bottom: 1rem; }
+    .alert-error   { background: rgba(239,68,68,0.12);  border: 1px solid rgba(239,68,68,0.3);  color: #fca5a5; }
+    .alert-success { background: rgba(34,197,94,0.12);  border: 1px solid rgba(34,197,94,0.3);  color: #86efac; }
+    .alert-info    { background: rgba(124,106,247,0.12); border: 1px solid rgba(124,106,247,0.3); color: #c4b5fd; }
+    .alert-warn    { background: rgba(234,179,8,0.12);  border: 1px solid rgba(234,179,8,0.3);  color: #fde047; }
+
+    /* ── Topic grid ── */
+    .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.65rem; }
+    .topic-btn {
+      background: #252836; border: 1px solid #2d3148; border-radius: 10px;
+      padding: 0.85rem 1rem; cursor: pointer; text-align: left;
+      transition: border-color 0.15s, background 0.15s; color: #e2e8f0; width: 100%;
+    }
+    .topic-btn:hover { background: #2d3148; border-color: #7c6af7; }
+    .topic-btn .t-name { font-weight: 500; font-size: 0.9rem; }
+    .topic-btn .t-meta { font-size: 0.75rem; color: #64748b; margin-top: 0.3rem; }
+    .topic-btn .t-bar  { height: 3px; background: #2d3148; border-radius: 2px; margin-top: 0.5rem; overflow: hidden; }
+    .topic-btn .t-fill { height: 100%; background: #7c6af7; border-radius: 2px; }
+
+    /* ── Sign grid ── */
+    .sign-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; }
+    .sign-btn {
+      background: #252836; border: 1px solid #2d3148; border-radius: 8px;
+      padding: 0.5rem 0.6rem; cursor: pointer; font-size: 0.78rem;
+      text-align: left; transition: all 0.15s; color: #cbd5e1; width: 100%;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .sign-btn:hover { background: #2d3148; border-color: #7c6af7; }
+    .sign-btn.done  { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.35); color: #86efac; }
+    .sign-btn.done:hover { background: rgba(34,197,94,0.15); }
+    .rep-tag {
+      font-size: 0.68rem; background: #22c55e; color: #052e16;
+      border-radius: 4px; padding: 0.05rem 0.35rem; font-weight: 600;
+      flex-shrink: 0; margin-left: 4px;
+    }
+
+    /* ── Record page ── */
+    .record-hero { text-align: center; padding: 2rem 1rem; }
+    .record-hero .sign-name { font-size: 3rem; font-weight: 700; color: #fff; margin-bottom: 0.4rem; }
+    .record-hero .meta { color: #64748b; font-size: 0.9rem; margin-bottom: 0.75rem; }
+    .record-hero .rep-num { font-size: 1.05rem; color: #7c6af7; font-weight: 600; margin-bottom: 2rem; }
+    #status-box { min-height: 3rem; margin: 1.25rem auto; max-width: 520px; }
+    #action-row { display: none; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-top: 1.25rem; }
+    #decision-row { display: none; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-top: 1.25rem; }
+
+    /* ── Misc ── */
+    .signer-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
+    .chip {
+      background: #252836; border: 1px solid #2d3148; border-radius: 20px;
+      padding: 0.3rem 0.85rem; font-size: 0.8rem; color: #94a3b8; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chip:hover { border-color: #7c6af7; color: #c4b5fd; }
+
+    @media (max-width: 600px) {
+      main { padding: 1rem; }
+      .sign-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+      .cam-picker label { display: none; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">🤟 <span>UzSL</span> Recorder</div>
+
+  {% if crumbs %}
+  <nav class="crumb">
+    {% for label, url in crumbs %}
+      {% if not loop.first %}<span class="sep">›</span>{% endif %}
+      {% if url %}<a href="{{ url }}">{{ label }}</a>{% else %}<span>{{ label }}</span>{% endif %}
+    {% endfor %}
+  </nav>
+  {% endif %}
+
+  <!-- Language switcher -->
+  <div style="display:flex; gap:0.3rem; flex-shrink:0;">
+    {% for code, label in [('en','EN'),('uz','UZ'),('ru','RU')] %}
+    <a href="/set_lang?lang={{ code }}"
+       class="btn btn-ghost"
+       style="padding:0.25rem 0.55rem; font-size:0.78rem; {% if lang == code %}border-color:#7c6af7; color:#c4b5fd;{% endif %}">
+      {{ label }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Camera selector — always visible -->
+  <div class="cam-picker">
+    <label>📷 {{ tr.camera_label }}</label>
+    {% if cameras %}
+    <select class="cam-select" id="cam-select" onchange="switchCamera(this.value)">
+      {% for cam in cameras %}
+      <option value="{{ cam.index }}" {% if cam.index == current_camera %}selected{% endif %}>
+        {{ cam.name }}
+      </option>
+      {% endfor %}
+    </select>
+    {% else %}
+    <select class="cam-select" id="cam-select" onchange="switchCamera(this.value)">
+      <option value="0">Camera 0</option>
+    </select>
+    {% endif %}
+    <button class="cam-refresh" title="{{ tr.scan_cameras_title }}" onclick="scanCameras()">⟳</button>
+    <a href="/camera/test" class="cam-refresh" title="{{ tr.camera_test }}" style="text-decoration:none;">🔍</a>
+  </div>
+</header>
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<script>
+  function switchCamera(idx) {
+    fetch('/camera/set', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({index: parseInt(idx)})
+    });
+  }
+
+  function scanCameras() {
+    const btn = document.querySelector('.cam-refresh');
+    btn.textContent = '…';
+    btn.disabled = true;
+    fetch('/camera/scan')
+      .then(r => r.json())
+      .then(cams => {
+        const sel = document.getElementById('cam-select');
+        const cur = parseInt(sel.value);
+        sel.innerHTML = cams.map(c =>
+          `<option value="${c.index}" ${c.index === cur ? 'selected' : ''}>${c.name}</option>`
+        ).join('');
+        btn.textContent = '⟳';
+        btn.disabled = false;
+      })
+      .catch(() => { btn.textContent = '⟳'; btn.disabled = false; });
+  }
+
+  // Global Escape → click #back-btn if present (and not handled by record page)
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Escape' && e.target.tagName !== 'INPUT') {
+      const back = document.getElementById('back-btn');
+      if (back) { e.preventDefault(); back.click(); }
+    }
+  });
+</script>
+</body>
+</html>

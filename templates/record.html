@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+{% block content %}
+{% set crumbs = [(signer_id, '/signer'), (tr.topics_crumb, '/topic'), (topic, '/sign'), (sign, none)] %}
+
+<div class="rec-layout">
+
+  <!-- ── Live camera feed ── -->
+  <div class="video-panel card" style="padding:0; overflow:hidden;">
+    <img id="feed" src="/video_feed" alt="Camera feed"
+         style="width:100%; display:block; border-radius:12px;">
+  </div>
+
+  <!-- ── Controls ── -->
+  <div class="controls-panel">
+    <div class="card" style="text-align:center; padding:2rem 1.5rem;">
+
+      <!-- path context -->
+      <div style="font-size:0.78rem; color:#64748b; margin-bottom:0.5rem; letter-spacing:0.01em;">
+        <span style="color:#818cf8;">{{ signer_id }}</span>
+        <span style="margin:0 0.3rem;">›</span>
+        <span style="color:#94a3b8;">{{ topic }}</span>
+      </div>
+
+      <!-- sign name -->
+      <div style="font-size:2.2rem; font-weight:700; color:#fff; margin-bottom:0.75rem;">{{ sign }}</div>
+
+      <!-- rep strip -->
+      <div id="rep-strip" style="display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:0.3rem; margin-bottom:0.75rem; min-height:1.8rem;"></div>
+
+      <!-- countdown duration picker -->
+      <div style="display:flex; align-items:center; justify-content:center; gap:0.4rem; margin-bottom:1.5rem;">
+        <span style="font-size:0.75rem; color:#475569;">{{ tr.countdown_label }}</span>
+        {% for n in [3, 4, 5] %}
+        <button id="cd-btn-{{ n }}" class="btn btn-ghost"
+                style="padding:0.25rem 0.65rem; font-size:0.8rem; {% if countdown_secs == n %}border-color:#7c6af7; color:#c4b5fd;{% endif %}"
+                onclick="setCountdown({{ n }})">{{ n }}s</button>
+        {% endfor %}
+      </div>
+
+      <!-- idle -->
+      <div id="pane-idle">
+        <button class="btn btn-success btn-lg" style="width:100%;" onclick="startRecording()">
+          {{ tr.start_recording }} <kbd>Space</kbd>
+        </button>
+        <p style="font-size:0.75rem; color:#475569; margin-top:0.75rem;"><kbd>Esc</kbd> — {{ tr.esc_hint }}</p>
+      </div>
+
+      <!-- countdown -->
+      <div id="pane-countdown" style="display:none;">
+        <div class="alert alert-info" style="font-size:1rem;">{{ tr.get_ready }}</div>
+      </div>
+
+      <!-- recording -->
+      <div id="pane-recording" style="display:none;">
+        <div class="alert alert-warn" style="margin-bottom:1rem;">
+          {{ tr.rec_frames }} <span id="frame-count">0</span> {{ tr.frames_unit }}
+        </div>
+        <button class="btn btn-danger btn-lg" style="width:100%;" onclick="stopRecording()">
+          {{ tr.stop_btn }} <kbd>Space</kbd>
+        </button>
+      </div>
+
+      <!-- awaiting decision -->
+      <div id="pane-decision" style="display:none;">
+        <div style="display:flex; gap:0.75rem;">
+          <button class="btn btn-success btn-lg" style="flex:1;" onclick="sendDecision('save')">
+            {{ tr.save_btn }}
+          </button>
+          <button class="btn btn-danger btn-lg" style="flex:1;" onclick="sendDecision('discard')">
+            {{ tr.discard_btn }}
+          </button>
+        </div>
+        <p style="font-size:0.75rem; color:#475569; margin-top:0.75rem;">
+          {{ tr.save_hint }}
+        </p>
+      </div>
+
+      <!-- done -->
+      <div id="pane-done" style="display:none;">
+        <div id="done-msg" class="alert" style="margin-bottom:1.25rem;"></div>
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <form method="POST" action="/record/again" id="form-again">
+            <button class="btn btn-success btn-lg" style="width:100%;" type="submit">{{ tr.next_rep }} <kbd>Space</kbd></button>
+          </form>
+          <form method="POST" action="/record/done" id="form-done">
+            <button class="btn btn-ghost btn-lg" style="width:100%;" type="submit">{{ tr.sign_list_btn }} <kbd>Esc</kbd></button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:0.75rem;">
+      <a href="/sign" class="btn btn-ghost">{{ tr.back_to_sign_list }}</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── Video gallery ── -->
+<div style="margin-top:1rem; text-align:center;">
+  <button id="videos-toggle-btn" class="btn btn-ghost" onclick="toggleVideos()">
+    {{ tr.view_videos }}
+  </button>
+</div>
+<div id="videos-section" style="display:none; margin-top:1rem;">
+  <div id="videos-grid"></div>
+</div>
+
+<style>
+  #videos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+  .vrep-card {
+    background: #1a1d27;
+    border: 1px solid #2d3148;
+    border-radius: 10px;
+    padding: 0.75rem;
+  }
+  .vrep-card .vrep-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+  }
+  .vrep-card video {
+    width: 100%;
+    border-radius: 6px;
+    background: #000;
+    display: block;
+  }
+</style>
+
+<style>
+  .rec-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.25rem;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .rec-layout { grid-template-columns: 1fr; }
+  }
+  kbd {
+    background: #252836; border: 1px solid #3d4265; border-radius: 4px;
+    padding: 0.1rem 0.4rem; font-size: 0.75rem; color: #94a3b8;
+  }
+  .rep-done {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1.5rem; height: 1.5rem; border-radius: 4px;
+    background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.4);
+    color: #86efac; font-size: 0.72rem; font-weight: 600;
+  }
+  .rep-next {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1.7rem; height: 1.7rem; border-radius: 4px;
+    background: rgba(124,106,247,0.25); border: 1px solid rgba(124,106,247,0.6);
+    color: #c4b5fd; font-size: 0.82rem; font-weight: 700;
+  }
+  .rep-arrow { color: #475569; font-size: 0.9rem; margin: 0 0.1rem; line-height: 1.7rem; }
+</style>
+
+<script>
+  const T = {
+    recording_num: {{ tr.recording_num | tojson }},
+    saved_msg:     {{ tr.saved_msg     | tojson }},
+    discarded_msg: {{ tr.discarded_msg | tojson }},
+  };
+
+  let currentPhase = 'idle';
+  let pollTimer    = null;
+
+  // ── Video feed auto-reconnect ──────────────────────────────────────────────
+  (function () {
+    const img = document.getElementById('feed');
+    let reconnecting = false;
+    function reconnect() {
+      if (reconnecting) return;
+      reconnecting = true;
+      setTimeout(() => {
+        img.src = '/video_feed?t=' + Date.now();
+        reconnecting = false;
+      }, 900);
+    }
+    img.addEventListener('error', reconnect);
+    // Watchdog: if the img src hasn't changed in 8 s and stream looks alive, it's fine;
+    // if it goes stale (src unchanged but error flag set), reconnect clears it.
+  })();
+
+  const panes = ['idle', 'countdown', 'recording', 'decision', 'done'];
+
+  function renderRepStrip(repIdx) {
+    const el = document.getElementById('rep-strip');
+    let html = '';
+    for (let i = 1; i <= repIdx; i++) {
+      html += `<span class="rep-done">${i}</span>`;
+    }
+    if (repIdx > 0) html += `<span class="rep-arrow">→</span>`;
+    html += `<span class="rep-next">${repIdx + 1}</span>`;
+    el.innerHTML = html;
+  }
+
+  function showPane(name) {
+    panes.forEach(p => {
+      document.getElementById(`pane-${p}`).style.display = (p === name) ? '' : 'none';
+    });
+    currentPhase = name;
+  }
+
+  function startRecording() {
+    fetch('/record/start', {method: 'POST'})
+      .then(r => r.json())
+      .then(d => { if (d.status === 'ok') startPolling(); });
+  }
+
+  function stopRecording() {
+    fetch('/record/stop', {method: 'POST'});
+  }
+
+  function sendDecision(choice) {
+    document.querySelectorAll('#pane-decision button').forEach(b => b.disabled = true);
+    fetch(`/record/${choice}`, {method: 'POST'});
+  }
+
+  function setCountdown(secs) {
+    fetch('/record/set_countdown', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({secs})
+    }).then(r => r.json()).then(d => {
+      [3, 4, 5].forEach(n => {
+        const btn = document.getElementById(`cd-btn-${n}`);
+        btn.style.borderColor = (n === d.countdown_secs) ? '#7c6af7' : '';
+        btn.style.color       = (n === d.countdown_secs) ? '#c4b5fd' : '';
+      });
+    });
+  }
+
+  function startPolling() {
+    stopPolling();
+    schedulePoll();
+  }
+
+  function stopPolling() {
+    if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
+  }
+
+  function schedulePoll() {
+    pollTimer = setTimeout(doPoll, 400);
+  }
+
+  function doPoll() {
+    pollTimer = null;
+    fetch('/record/status')
+      .then(r => r.json())
+      .then(handleStatus)
+      .catch(() => schedulePoll());
+  }
+
+  function handleStatus(data) {
+    switch (data.phase) {
+      case 'idle':
+        showPane('idle');
+        // don't reschedule — nothing to poll in idle
+        break;
+      case 'countdown':
+        showPane('countdown');
+        schedulePoll();
+        break;
+      case 'recording':
+        showPane('recording');
+        document.getElementById('frame-count').textContent = data.frame_count;
+        schedulePoll();
+        break;
+      case 'awaiting_decision':
+        showPane('decision');
+        schedulePoll();
+        break;
+      case 'done': {
+        renderRepStrip(data.rep_idx);
+        const msg = document.getElementById('done-msg');
+        if (data.last_result === 'success') {
+          msg.className = 'alert alert-success';
+          msg.textContent = `✅ ${T.saved_msg} ${data.rep_idx}.`;
+          reloadVideosIfOpen();
+        } else {
+          msg.className = 'alert alert-info';
+          msg.textContent = `🗑️ ${T.discarded_msg}`;
+        }
+        showPane('done');
+        // don't reschedule — done state is stable
+        break;
+      }
+    }
+  }
+
+  // ── Video gallery ─────────────────────────────────────────────────────────
+  const TR_VIEW  = {{ tr.view_videos  | tojson }};
+  const TR_HIDE  = {{ tr.hide_videos  | tojson }};
+  const TR_EMPTY = {{ tr.no_recordings | tojson }};
+  const TR_REP   = {{ tr.rep_label    | tojson }};
+
+  let videosOpen = false;
+
+  function toggleVideos() {
+    videosOpen ? closeVideos() : openVideos();
+  }
+
+  function openVideos() {
+    videosOpen = true;
+    document.getElementById('videos-toggle-btn').textContent = TR_HIDE;
+    loadVideos();
+  }
+
+  function closeVideos() {
+    videosOpen = false;
+    document.getElementById('videos-toggle-btn').textContent = TR_VIEW;
+    document.querySelectorAll('#videos-section video').forEach(v => v.pause());
+    document.getElementById('videos-section').style.display = 'none';
+  }
+
+  function loadVideos() {
+    fetch('/record/video_list')
+      .then(r => r.json())
+      .then(reps => {
+        const grid = document.getElementById('videos-grid');
+        if (reps.length === 0) {
+          grid.innerHTML = `<p style="color:#475569;padding:0.5rem 0;">${TR_EMPTY}</p>`;
+        } else {
+          grid.innerHTML = reps.map(rep => {
+            const n = rep.split('-')[1];
+            return `<div class="vrep-card">
+              <div class="vrep-label">${TR_REP} ${n}</div>
+              <video controls preload="metadata">
+                <source src="/record/video/${rep}?t={{ rep_idx }}" type="video/mp4">
+              </video>
+            </div>`;
+          }).join('');
+        }
+        document.getElementById('videos-section').style.display = '';
+      })
+      .catch(() => {});
+  }
+
+  function reloadVideosIfOpen() {
+    if (!videosOpen) return;
+    document.querySelectorAll('#videos-section video').forEach(v => v.pause());
+    loadVideos();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.code === 'Space' && currentPhase === 'idle') {
+      e.preventDefault(); startRecording();
+    } else if (e.code === 'Space' && currentPhase === 'recording') {
+      e.preventDefault(); stopRecording();
+    } else if (e.code === 'Space' && currentPhase === 'done') {
+      e.preventDefault(); document.getElementById('form-again').submit();
+    } else if (e.code === 'Escape' && (currentPhase === 'idle' || currentPhase === 'done')) {
+      e.preventDefault(); document.getElementById('form-done').submit();
+    } else if (e.code === 'Enter' && currentPhase === 'decision') {
+      e.preventDefault(); sendDecision('save');
+    } else if ((e.code === 'Delete' || e.code === 'Backspace') && currentPhase === 'decision') {
+      e.preventDefault(); sendDecision('discard');
+    }
+  });
+
+  // Render rep strip from server-rendered initial value
+  renderRepStrip({{ rep_idx }});
+
+  // On load: check current phase and start polling if mid-session
+  fetch('/record/status')
+    .then(r => r.json())
+    .then(data => {
+      handleStatus(data);
+      if (data.phase !== 'idle' && data.phase !== 'done') startPolling();
+    })
+    .catch(() => {});
+</script>
+{% endblock %}
