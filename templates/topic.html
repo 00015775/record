@@ -10,9 +10,10 @@
   <div class="topic-grid">
     {% for tp in topic_data %}
     <form method="POST" action="/topic/set" style="display:contents;">
-      <input type="hidden" name="topic" value="{{ tp.name }}">
+      <input type="hidden" name="topic" value="{{ tp.uz }}">
       <button type="submit" class="topic-btn">
-        <div class="t-name">{{ tp.name }}</div>
+        <div class="t-name">{{ tp.uz }}</div>
+        <div class="t-sub">{{ tp.ru }} · {{ tp.en }}</div>
         <div class="t-meta">
           {% if tp.recorded > 0 %}{{ tp.recorded }}/{% endif %}{{ tp.total }} {{ tr.words_unit }}
         </div>

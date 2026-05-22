@@ -24,7 +24,8 @@ from mod01_config import FPS, FRAME_HEIGHT, FRAME_WIDTH
 from translations import TRANSLATIONS
 from mod02_storage import (
     add_sign, add_topic, count_all_repetitions, count_repetitions,
-    list_signers, load_sign_list, load_topic_list, path_videos, recorded_signs,
+    list_signers, load_sign_list, load_topic_list, load_topic_translations,
+    path_videos, recorded_signs, sign_uz,
 )
 
 app = Flask(__name__, template_folder='../templates')
@@ -213,8 +214,11 @@ def topic_page():
     if not state.signer_id:
         return redirect(url_for("signer_page"))
     topics = load_topic_list()
+    translations = load_topic_translations()
     topic_data = [
-        {"name": t,
+        {"uz": t,
+         "ru": translations.get(t, {}).get("ru", t),
+         "en": translations.get(t, {}).get("en", t),
          "total": len(load_sign_list(t)),
          "recorded": len(recorded_signs(t, state.signer_id))}
         for t in topics
@@ -243,15 +247,23 @@ def sign_page():
         return redirect(url_for("signer_page"))
     if not state.topic:
         return redirect(url_for("topic_page"))
-    signs     = load_sign_list(state.topic)
+    signs = load_sign_list(state.topic)
     rep_counts = count_all_repetitions(state.topic, state.signer_id)
     sign_data = [
-        {"name": s, "reps": rep_counts.get(s, 0), "recorded": s in rep_counts}
+        {"uz": s["uz"], "ru": s["ru"], "en": s["en"],
+         "reps": rep_counts.get(s["uz"], 0), "recorded": s["uz"] in rep_counts}
         for s in signs
     ]
+    translations = load_topic_translations()
+    topic_full = {
+        "uz": state.topic,
+        "ru": translations.get(state.topic, {}).get("ru", state.topic),
+        "en": translations.get(state.topic, {}).get("en", state.topic),
+    }
     return render_template("sign.html",
                            signer_id=state.signer_id,
                            topic=state.topic,
+                           topic_full=topic_full,
                            sign_data=sign_data)
 
 @app.route("/sign/set", methods=["POST"])
@@ -276,10 +288,15 @@ def sign_add():
 def record_page():
     if not state.sign:
         return redirect(url_for("sign_page"))
+    signs = load_sign_list(state.topic)
+    sign_full = next(
+        (s for s in signs if s["uz"] == state.sign),
+        {"uz": state.sign, "ru": state.sign, "en": state.sign},
+    )
     return render_template("record.html",
                            signer_id=state.signer_id,
                            topic=state.topic,
-                           sign=state.sign,
+                           sign=sign_full,
                            rep_idx=state.rep_idx,
                            countdown_secs=state.countdown_secs)
 

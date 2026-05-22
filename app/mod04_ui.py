@@ -1,8 +1,8 @@
 import os
 from mod02_storage import (
     list_signers, add_sign, add_topic,
-    load_sign_list, load_topic_list,
-    recorded_signs, count_repetitions,
+    load_sign_list, load_topic_list, load_topic_translations,
+    recorded_signs, count_repetitions, sign_uz,
 )
 
 GREEN = "\033[92m"
@@ -38,16 +38,21 @@ def select_topic(signer_id: str) -> str | None:
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         topics = load_topic_list()
+        trans  = load_topic_translations()
         print(f"=== TOPIC MENU  (Signer: {signer_id}) ===\n")
 
-        COLS = 3
+        COLS = 2
         ROWS = (len(topics) + COLS - 1) // COLS
         for row in range(ROWS):
             line = []
             for col in range(COLS):
                 idx = row + col * ROWS
                 if idx < len(topics):
-                    line.append(f"{idx+1:3d}. {topics[idx].ljust(32)}")
+                    uz = topics[idx]
+                    ru = trans.get(uz, {}).get("ru", "")
+                    en = trans.get(uz, {}).get("en", "")
+                    label = f"{uz} / {ru} / {en}" if ru else uz
+                    line.append(f"{idx+1:3d}. {label.ljust(46)}")
             print("  ".join(line))
 
         print("\n[a] Add new topic")
@@ -80,20 +85,25 @@ def select_sign(signer_id: str, topic: str) -> str | None:
 
         print(f"=== SIGN LIST  (Signer: {signer_id} | Topic: {topic}) ===\n")
         if signs:
-            COLS = 5
+            COLS = 3
             ROWS = (len(signs) + COLS - 1) // COLS
             for row in range(ROWS):
                 line = []
                 for col in range(COLS):
                     idx = row + col * ROWS
                     if idx < len(signs):
-                        s = signs[idx]
-                        reps = count_repetitions(topic, signer_id, s)
-                        color = GREEN if s in recorded else WHITE
-                        label = f"{s} ({reps})" if reps else s
-                        line.append(f"{idx+1:3d}. {color}{label.ljust(20)}{RESET}")
+                        s    = signs[idx]
+                        uz   = sign_uz(s)
+                        ru   = s.get("ru", "") if isinstance(s, dict) else ""
+                        en   = s.get("en", "") if isinstance(s, dict) else ""
+                        reps = count_repetitions(topic, signer_id, uz)
+                        color = GREEN if uz in recorded else WHITE
+                        label = f"{uz} / {ru} / {en}" if ru else uz
+                        if reps:
+                            label = f"{label} ({reps})"
+                        line.append(f"{idx+1:3d}. {color}{label.ljust(32)}{RESET}")
                     else:
-                        line.append(" " * 24)
+                        line.append(" " * 36)
                 print("  ".join(line))
         else:
             print("  (no signs in this topic yet — press 'a' to add one)")
@@ -113,7 +123,7 @@ def select_sign(signer_id: str, topic: str) -> str | None:
                 add_sign(topic, new)
             continue
         if choice.isdigit() and 1 <= int(choice) <= len(signs):
-            return signs[int(choice) - 1]
+            return sign_uz(signs[int(choice) - 1])
         print("Invalid selection.")
         input("Press Enter...")
 

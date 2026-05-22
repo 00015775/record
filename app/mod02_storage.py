@@ -53,25 +53,48 @@ def add_topic(new_topic: str):
 def _signs_path(topic: str) -> Path:
     return path_topic(topic) / "signs.json"
 
-def load_sign_list(topic: str) -> list[str]:
+def sign_uz(sign: "dict | str") -> str:
+    """Return the Uzbek name (folder key) for a sign entry."""
+    return sign["uz"] if isinstance(sign, dict) else sign
+
+def load_sign_list(topic: str) -> list[dict]:
     p = _signs_path(topic)
+    if p.exists():
+        try:
+            data = json.loads(p.read_text())
+            if data and isinstance(data[0], str):
+                return [{"uz": s, "ru": s, "en": s} for s in data]
+            return data
+        except Exception:
+            pass
+    return []
+
+def save_sign_list(topic: str, signs: list):
+    p = _signs_path(topic)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(signs, ensure_ascii=False, indent=2))
+
+def add_sign(topic: str, new_sign: "str | dict"):
+    signs = load_sign_list(topic)
+    entry = new_sign if isinstance(new_sign, dict) else {"uz": new_sign, "ru": new_sign, "en": new_sign}
+    if not any(sign_uz(s) == sign_uz(entry) for s in signs):
+        signs.append(entry)
+        save_sign_list(topic, signs)
+
+
+# ── Topic translations ────────────────────────────────────────────────────────
+
+def _topic_translations_path() -> Path:
+    return Path(DATA_ROOT) / "topic_translations.json"
+
+def load_topic_translations() -> dict:
+    p = _topic_translations_path()
     if p.exists():
         try:
             return json.loads(p.read_text())
         except Exception:
             pass
-    return []
-
-def save_sign_list(topic: str, signs: list[str]):
-    p = _signs_path(topic)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(signs, ensure_ascii=False, indent=2))
-
-def add_sign(topic: str, new_sign: str):
-    signs = load_sign_list(topic)
-    if new_sign not in signs:
-        signs.append(new_sign)
-        save_sign_list(topic, signs)
+    return {}
 
 
 # ── Progress ──────────────────────────────────────────────────────────────────

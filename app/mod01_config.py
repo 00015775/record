@@ -1,7 +1,11 @@
 import os
+from pathlib import Path
+
+_APP_DIR      = Path(__file__).resolve().parent
+_PROJECT_ROOT = _APP_DIR.parent
 
 # 1. GLOBAL SETTINGS
-DATA_ROOT = "./Data_Numpy_Arrays_RSL_UzSL"
+DATA_ROOT = str(_PROJECT_ROOT / "Data_Numpy_Arrays_RSL_UzSL")
 VIDEO_DEVICE = 0
 FRAME_WIDTH, FRAME_HEIGHT = 1280, 720
 FPS = 30

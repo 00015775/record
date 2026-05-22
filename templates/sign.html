@@ -8,7 +8,7 @@
     <span style="margin:0 0.3rem;">›</span>
     <span style="color:#94a3b8;">{{ topic }}</span>
   </div>
-  <h2>{{ topic }}</h2>
+  <h2>{{ topic_full.uz }} <span style="font-size:0.85rem; font-weight:400; color:#64748b;">{{ topic_full.ru }} · {{ topic_full.en }}</span></h2>
   <p style="font-size:0.82rem; color:#64748b; margin-bottom:1.25rem;">
     {{ sign_data|length }} {{ tr.words_unit }} ·
     {{ sign_data|selectattr('recorded')|list|length }} {{ tr.recorded_label }}
@@ -17,9 +17,10 @@
   <div class="sign-grid">
     {% for s in sign_data %}
     <form method="POST" action="/sign/set" style="display:contents;">
-      <input type="hidden" name="sign" value="{{ s.name }}">
+      <input type="hidden" name="sign" value="{{ s.uz }}">
       <button type="submit" class="sign-btn {% if s.recorded %}done{% endif %}">
-        <span>{{ s.name }}</span>
+        <span class="s-uz">{{ s.uz }}</span>
+        <span class="s-sub">{{ s.ru }} · {{ s.en }}</span>
         {% if s.reps %}<span class="rep-tag">{{ s.reps }}</span>{% endif %}
       </button>
     </form>

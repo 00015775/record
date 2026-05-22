@@ -111,26 +111,30 @@
       transition: border-color 0.15s, background 0.15s; color: #e2e8f0; width: 100%;
     }
     .topic-btn:hover { background: #2d3148; border-color: #7c6af7; }
-    .topic-btn .t-name { font-weight: 500; font-size: 0.9rem; }
+    .topic-btn .t-name { font-weight: 600; font-size: 0.9rem; }
+    .topic-btn .t-sub  { font-size: 0.72rem; color: #94a3b8; margin-top: 0.15rem; }
     .topic-btn .t-meta { font-size: 0.75rem; color: #64748b; margin-top: 0.3rem; }
     .topic-btn .t-bar  { height: 3px; background: #2d3148; border-radius: 2px; margin-top: 0.5rem; overflow: hidden; }
     .topic-btn .t-fill { height: 100%; background: #7c6af7; border-radius: 2px; }
 
     /* ── Sign grid ── */
-    .sign-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; }
+    .sign-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.5rem; }
     .sign-btn {
       background: #252836; border: 1px solid #2d3148; border-radius: 8px;
-      padding: 0.5rem 0.6rem; cursor: pointer; font-size: 0.78rem;
+      padding: 0.5rem 0.6rem; cursor: pointer;
       text-align: left; transition: all 0.15s; color: #cbd5e1; width: 100%;
-      display: flex; justify-content: space-between; align-items: center;
+      display: flex; flex-direction: column; align-items: flex-start; gap: 0.15rem;
     }
     .sign-btn:hover { background: #2d3148; border-color: #7c6af7; }
     .sign-btn.done  { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.35); color: #86efac; }
     .sign-btn.done:hover { background: rgba(34,197,94,0.15); }
+    .s-uz { font-size: 0.82rem; font-weight: 600; }
+    .s-sub { font-size: 0.66rem; color: #64748b; line-height: 1.3; }
+    .sign-btn.done .s-sub { color: rgba(134,239,172,0.55); }
     .rep-tag {
       font-size: 0.68rem; background: #22c55e; color: #052e16;
       border-radius: 4px; padding: 0.05rem 0.35rem; font-weight: 600;
-      flex-shrink: 0; margin-left: 4px;
+      align-self: flex-end; margin-top: 0.15rem;
     }
 
     /* ── Record page ── */
@@ -153,7 +157,7 @@
 
     @media (max-width: 600px) {
       main { padding: 1rem; }
-      .sign-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+      .sign-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
       .cam-picker label { display: none; }
     }
   </style>

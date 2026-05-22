@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-{% set crumbs = [(signer_id, '/signer'), (tr.topics_crumb, '/topic'), (topic, '/sign'), (sign, none)] %}
+{% set crumbs = [(signer_id, '/signer'), (tr.topics_crumb, '/topic'), (topic, '/sign'), (sign.uz, none)] %}
 
 <div class="rec-layout">
 
@@ -22,7 +22,8 @@
       </div>
 
       <!-- sign name -->
-      <div style="font-size:2.2rem; font-weight:700; color:#fff; margin-bottom:0.75rem;">{{ sign }}</div>
+      <div style="font-size:2.2rem; font-weight:700; color:#fff; line-height:1.2;">{{ sign.uz }}</div>
+      <div style="font-size:0.88rem; color:#94a3b8; margin-bottom:0.75rem;">{{ sign.ru }} · {{ sign.en }}</div>
 
       <!-- rep strip -->
       <div id="rep-strip" style="display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:0.3rem; margin-bottom:0.75rem; min-height:1.8rem;"></div>
