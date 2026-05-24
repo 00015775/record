@@ -20,7 +20,7 @@ import re
 import cv2
 from flask import Flask, Response, jsonify, redirect, render_template, request, send_file, session, url_for
 
-from mod01_config import FPS, FRAME_HEIGHT, FRAME_WIDTH
+from mod01_config import COUNTDOWN_SECONDS, FPS, FRAME_HEIGHT, FRAME_WIDTH
 from translations import TRANSLATIONS
 from mod02_storage import (
     add_sign, add_topic, count_all_repetitions, count_repetitions,
@@ -112,7 +112,7 @@ class AppState:
         # recording lifecycle
         self.cmd:            str | None = None   # 'record'
         self.recording:      bool       = False
-        self.countdown_secs: int        = 3
+        self.countdown_secs: int        = COUNTDOWN_SECONDS
         self.countdown_end:  float      = 0.0
         self.stop_requested: bool       = False
         self.frame_count:    int        = 0
@@ -332,8 +332,8 @@ def record_discard():
 
 @app.route("/record/set_countdown", methods=["POST"])
 def record_set_countdown():
-    secs = int(request.get_json(silent=True).get("secs", 3))
-    if secs in (3, 4, 5) and not state.recording:
+    secs = int(request.get_json(silent=True).get("secs", COUNTDOWN_SECONDS))
+    if secs in (1, 2, 3, 4, 5) and not state.recording:
         state.set(countdown_secs=secs)
     return jsonify({"status": "ok", "countdown_secs": state.countdown_secs})
 

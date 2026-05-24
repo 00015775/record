@@ -31,7 +31,7 @@
       <!-- countdown duration picker -->
       <div style="display:flex; align-items:center; justify-content:center; gap:0.4rem; margin-bottom:1.5rem;">
         <span style="font-size:0.75rem; color:#475569;">{{ tr.countdown_label }}</span>
-        {% for n in [3, 4, 5] %}
+        {% for n in [1, 2, 3, 4, 5] %}
         <button id="cd-btn-{{ n }}" class="btn btn-ghost"
                 style="padding:0.25rem 0.65rem; font-size:0.8rem; {% if countdown_secs == n %}border-color:#7c6af7; color:#c4b5fd;{% endif %}"
                 onclick="setCountdown({{ n }})">{{ n }}s</button>
@@ -230,7 +230,7 @@
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({secs})
     }).then(r => r.json()).then(d => {
-      [3, 4, 5].forEach(n => {
+      [1, 2, 3, 4, 5].forEach(n => {
         const btn = document.getElementById(`cd-btn-${n}`);
         btn.style.borderColor = (n === d.countdown_secs) ? '#7c6af7' : '';
         btn.style.color       = (n === d.countdown_secs) ? '#c4b5fd' : '';
